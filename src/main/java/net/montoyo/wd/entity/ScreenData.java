@@ -187,6 +187,9 @@ public class ScreenData {
 
     public void createBrowser(ScreenBlockEntity be, boolean doAnim) {
         if (WebDisplays.PROXY instanceof ClientProxy) {
+            // shown from another player's stream instead
+            if (net.montoyo.wd.client.stream.StreamManager.isRemote(be.getBlockPos(), side)) return;
+
             browser = WDBrowser.createBrowser(WebDisplays.applyBlacklist(url != null ? url : "https://www.google.com"), false);
 
             // set screen

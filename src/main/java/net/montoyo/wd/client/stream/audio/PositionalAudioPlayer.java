@@ -23,9 +23,6 @@ public final class PositionalAudioPlayer implements AutoCloseable {
     public static final int SAMPLE_RATE = 48000;
     private static final int CHUNK = 960;               // 20 ms per AL buffer
     private static final int BUFFERS = 16;
-    private static final int START_QUEUED = 3;          // start (or restart) playback with 60 ms queued
-    private static final int MAX_QUEUED = 5;            // keep at most 100 ms inside OpenAL
-    private static final int MAX_BACKLOG = SAMPLE_RATE * 3 / 10; // drop audio older than 300 ms
     private static final float MAX_DISTANCE = 32.0f;
 
     private final Object lock = new Object();
@@ -41,8 +38,21 @@ public final class PositionalAudioPlayer implements AutoCloseable {
     private volatile int queuedChunks;
     private volatile long underruns, dropped;
 
+    private final int startQueued;  // start (or restart) playback once this many chunks are queued
+    private final int maxQueued;    // keep at most this many chunks inside OpenAL
+    private final int maxBacklog;   // samples; older audio is dropped to bound the latency
+
+    /** Low-latency player for local audio (60 ms start buffer). */
     public PositionalAudioPlayer(Vec3 position) {
+        this(position, 60);
+    }
+
+    /** @param startBufferMs audio buffered before playback starts; more absorbs more network jitter */
+    public PositionalAudioPlayer(Vec3 position, int startBufferMs) {
         this.position = position;
+        this.startQueued = Math.max(2, startBufferMs * SAMPLE_RATE / 1000 / CHUNK);
+        this.maxQueued = startQueued + 2;
+        this.maxBacklog = (startBufferMs + 250) * SAMPLE_RATE / 1000;
         pump = new Thread(this::pumpLoop, "WD audio player");
         pump.setDaemon(true);
         pump.start();
@@ -65,7 +75,7 @@ public final class PositionalAudioPlayer implements AutoCloseable {
                     partialLen = 0;
                 }
             }
-            while (backlog > MAX_BACKLOG) { // producer ahead of playback: drop the oldest audio to keep latency low
+            while (backlog > maxBacklog) { // producer ahead of playback: drop the oldest audio to keep latency low
                 pending.poll();
                 backlog -= CHUNK;
                 dropped++;
@@ -88,6 +98,11 @@ public final class PositionalAudioPlayer implements AutoCloseable {
 
     public long getDropped() {
         return dropped;
+    }
+
+    /** One-line status for the stream HUD. */
+    public String describe() {
+        return String.format("buffer %d ms  restarts %d  dropped %d", getBufferedMs(), underruns, dropped);
     }
 
     private void pumpLoop() {
@@ -132,7 +147,7 @@ public final class PositionalAudioPlayer implements AutoCloseable {
                 for (int i = 0; i < processed; i++) free.add(AL10.alSourceUnqueueBuffers(source));
 
                 int queued = AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED);
-                while (queued < MAX_QUEUED && !free.isEmpty()) {
+                while (queued < maxQueued && !free.isEmpty()) {
                     short[] chunk;
                     synchronized (lock) {
                         chunk = pending.poll();
@@ -149,7 +164,7 @@ public final class PositionalAudioPlayer implements AutoCloseable {
                 queuedChunks = queued;
 
                 boolean playing = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE) == AL10.AL_PLAYING;
-                if (!playing && queued >= START_QUEUED) {
+                if (!playing && queued >= startQueued) {
                     if (started) underruns++; // ran dry (or the page paused its audio) and is resuming
                     AL10.alSourcePlay(source);
                     started = true;

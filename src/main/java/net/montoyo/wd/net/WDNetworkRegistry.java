@@ -1,5 +1,6 @@
 package net.montoyo.wd.net;
 
+import net.montoyo.wd.net.stream.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -9,7 +10,7 @@ import net.montoyo.wd.net.server_bound.*;
 import java.util.ArrayList;
 
 public class WDNetworkRegistry {
-	public static final String networkingVersion = "2";
+	public static final String networkingVersion = "3";
 	public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
 			new ResourceLocation("webdisplays", "packetsystem"),
 			() -> networkingVersion,
@@ -57,6 +58,13 @@ public class WDNetworkRegistry {
 		// minepad
 		entries.add(new NetworkEntry<>(C2SMessageMinepadUrl.class, C2SMessageMinepadUrl::new));
 		
+		// screen streaming
+		entries.add(new NetworkEntry<>(C2SStreamControl.class, C2SStreamControl::new));
+		entries.add(new NetworkEntry<>(C2SStreamData.class, C2SStreamData::new));
+		entries.add(new NetworkEntry<>(S2CStreamState.class, S2CStreamState::new));
+		entries.add(new NetworkEntry<>(S2CStreamData.class, S2CStreamData::new));
+		entries.add(new NetworkEntry<>(S2CStreamKeyFrame.class, S2CStreamKeyFrame::new));
+
 		for (int i = 0; i < entries.size(); i++) entries.get(i).register(i, INSTANCE);
 	}
 	

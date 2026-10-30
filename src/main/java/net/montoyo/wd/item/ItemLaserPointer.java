@@ -64,7 +64,8 @@ public class ItemLaserPointer extends Item implements WDItem {
 				//Since rights aren't synchronized, let the server check them for us...
 				ScreenData scr = te.getScreen(side);
 				
-				if (scr.browser != null) {
+				// viewers of a streamed screen have no browser, the host's receives the input through the server
+				if (scr.browser != null || net.montoyo.wd.client.stream.StreamManager.isRemote(te.getBlockPos(), side)) {
 					float hitX = ((float) result.getLocation().x) - (float) pos.x;
 					float hitY = ((float) result.getLocation().y) - (float) pos.y;
 					float hitZ = ((float) result.getLocation().z) - (float) pos.z;

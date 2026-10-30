@@ -161,11 +161,13 @@ public class GuiKeyboard extends WDScreen {
 
         data = tes.getScreen(side);
         CefBrowser browser = data.browser;
-        ((MCEFBrowser) browser).setCursor(CefCursorType.fromId(data.mouseType));
-        ((MCEFBrowser) browser).setCursorChangeListener((id) -> {
-            data.mouseType = id;
-            ((MCEFBrowser) browser).setCursor(CefCursorType.fromId(id));
-        });
+        if (browser instanceof MCEFBrowser mcef) { // null while the screen shows someone else's stream
+            mcef.setCursor(CefCursorType.fromId(data.mouseType));
+            mcef.setCursorChangeListener((id) -> {
+                data.mouseType = id;
+                mcef.setCursor(CefCursorType.fromId(id));
+            });
+        }
     }
 
     @Override

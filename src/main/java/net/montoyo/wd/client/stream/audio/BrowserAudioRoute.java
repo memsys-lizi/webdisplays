@@ -1,9 +1,9 @@
 package net.montoyo.wd.client.stream.audio;
 
 import net.minecraft.world.phys.Vec3;
-import net.montoyo.wd.client.stream.LoopbackStream;
+import net.montoyo.wd.client.stream.ScreenGeometry;
+import net.montoyo.wd.client.stream.StreamEncoder;
 import net.montoyo.wd.entity.ScreenBlockEntity;
-import net.montoyo.wd.entity.ScreenData;
 import net.montoyo.wd.utilities.browser.WDClientBrowser;
 import org.cef.misc.DataPointer;
 import org.lwjgl.system.MemoryUtil;
@@ -12,7 +12,7 @@ import java.nio.FloatBuffer;
 
 /**
  * One captured CEF audio stream: downmixes to mono, resamples to 48 kHz and hands the samples either to the
- * screen's stream (encoded, then played after decoding) or straight to the positional player.
+ * screen's stream encoder and/or straight to the positional player.
  */
 public final class BrowserAudioRoute implements AutoCloseable {
     private final int channels;
@@ -32,7 +32,7 @@ public final class BrowserAudioRoute implements AutoCloseable {
     }
 
     /** CEF audio thread. {@code data} points to {@code channels} planar float arrays of {@code frames} samples. */
-    void onPacket(DataPointer data, int frames, LoopbackStream stream) {
+    void onPacket(DataPointer data, int frames, StreamEncoder stream) {
         if (mono.length < frames) mono = new float[frames];
         java.util.Arrays.fill(mono, 0, frames, 0f);
 
@@ -45,20 +45,14 @@ public final class BrowserAudioRoute implements AutoCloseable {
         for (int i = 0; i < frames; i++) mono[i] *= scale;
 
         int n = resampler.process(mono, frames);
+        if (stream == null || stream.monitorsAudio()) player.feed(resampler.output(), n);
         if (stream != null) stream.audioIn(resampler.output(), n);
-        else player.feed(resampler.output(), n);
     }
 
     private static Vec3 screenCenter(WDClientBrowser browser) {
         ScreenBlockEntity be = browser.getBe();
         if (be == null) return Vec3.ZERO;
-        ScreenData scr = be.getScreen(browser.getSide());
-        if (scr == null) return Vec3.atCenterOf(be.getBlockPos());
-        // same anchor WebDisplays uses for screen distance checks
-        return new Vec3(
-                be.getBlockPos().getX() + scr.side.right.x * scr.size.x / 2.0 + scr.side.up.x * scr.size.y / 2.0,
-                be.getBlockPos().getY() + scr.side.right.y * scr.size.x / 2.0 + scr.side.up.y * scr.size.y / 2.0,
-                be.getBlockPos().getZ() + scr.side.right.z * scr.size.x / 2.0 + scr.side.up.z * scr.size.y / 2.0);
+        return ScreenGeometry.center(be, be.getScreen(browser.getSide()));
     }
 
     @Override

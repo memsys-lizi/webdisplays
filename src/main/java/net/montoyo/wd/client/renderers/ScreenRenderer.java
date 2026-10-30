@@ -49,11 +49,13 @@ public class ScreenRenderer implements BlockEntityRenderer<ScreenBlockEntity> {
 		
 		for (int i = 0; i < te.screenCount(); i++) {
 			ScreenData scr = te.getScreen(i);
-			if (scr.browser == null) {
+			// streamed screens (watching someone else's stream) have no browser of their own
+			int streamTexture = StreamManager.textureFor(te, scr);
+			if (scr.browser == null && streamTexture == 0) {
 				double dist = WebDisplays.PROXY.distanceTo(te, Minecraft.getInstance().getEntityRenderDispatcher().camera.getPosition());
 				if (dist <= WebDisplays.INSTANCE.loadDistance2 * 16)
 					scr.createBrowser(te, true);
-				else continue;
+				if (scr.browser == null) continue;
 			}
 			
 			// TODO: manually backface cull the screens
@@ -126,7 +128,6 @@ public class ScreenRenderer implements BlockEntityRenderer<ScreenBlockEntity> {
 			//TODO: don't use tesselator
 			RenderSystem.enableDepthTest();
 			RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
-			int streamTexture = StreamManager.textureFor(scr);
 			RenderSystem._setShaderTexture(0, streamTexture != 0 ? streamTexture : ((MCEFBrowser) scr.browser).getRenderer().getTextureID());
 			RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 			builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
