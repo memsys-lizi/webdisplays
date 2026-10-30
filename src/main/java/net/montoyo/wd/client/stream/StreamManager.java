@@ -17,6 +17,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.montoyo.wd.client.ClientProxy;
+import net.montoyo.wd.client.stream.audio.AudioTap;
 import net.montoyo.wd.client.stream.codec.FFmpegLoader;
 import net.montoyo.wd.client.stream.codec.H264Encoder;
 import net.montoyo.wd.entity.ScreenBlockEntity;
@@ -26,6 +27,7 @@ import net.montoyo.wd.utilities.Multiblock;
 import net.montoyo.wd.utilities.browser.WDClientBrowser;
 import net.montoyo.wd.utilities.data.BlockSide;
 import net.montoyo.wd.utilities.math.Vector3i;
+import org.cef.browser.CefBrowser;
 
 import java.nio.file.Path;
 import java.util.IdentityHashMap;
@@ -33,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -46,8 +49,28 @@ import java.util.stream.Collectors;
 @Mod.EventBusSubscriber(modid = "webdisplays", value = Dist.CLIENT)
 public final class StreamManager {
     private static final Map<ScreenData, LoopbackStream> STREAMS = new IdentityHashMap<>();
+    /** Same streams keyed by browser, for the CEF audio thread. */
+    private static final Map<CefBrowser, LoopbackStream> BY_BROWSER = new ConcurrentHashMap<>();
 
     private StreamManager() {
+    }
+
+    /** Any thread: the stream fed by this browser, or null. */
+    public static LoopbackStream streamForBrowser(CefBrowser browser) {
+        return BY_BROWSER.get(browser);
+    }
+
+    private static void start(ScreenData screen, WDClientBrowser browser, LoopbackStream.Settings settings) {
+        LoopbackStream stream = new LoopbackStream(screen, browser, settings);
+        STREAMS.put(screen, stream);
+        BY_BROWSER.put(browser, stream);
+        AudioTap.INSTANCE.startCapture(browser);
+    }
+
+    private static void closeStream(LoopbackStream stream) {
+        AudioTap.INSTANCE.stopCapture(stream.browser);
+        BY_BROWSER.remove(stream.browser);
+        stream.close();
     }
 
     /** Render thread: texture to draw for this screen instead of the browser's own, or 0. */
@@ -64,11 +87,11 @@ public final class StreamManager {
 
     private static void stop(ScreenData screen) {
         LoopbackStream stream = STREAMS.remove(screen);
-        if (stream != null) stream.close();
+        if (stream != null) closeStream(stream);
     }
 
     private static void stopAll() {
-        STREAMS.values().forEach(LoopbackStream::close);
+        STREAMS.values().forEach(StreamManager::closeStream);
         STREAMS.clear();
     }
 
@@ -79,7 +102,11 @@ public final class StreamManager {
     /** Loads FFmpeg off-thread (first use extracts ~70 MB of natives), then runs {@code then} on the client thread. */
     private static void withFFmpeg(Runnable then) {
         Minecraft mc = Minecraft.getInstance();
-        CompletableFuture.supplyAsync(() -> FFmpegLoader.ensureLoaded(nativesDir())).thenAccept(ok -> mc.execute(() -> {
+        CompletableFuture.supplyAsync(() -> {
+            // pool threads use the app class loader; Forge's event bus transformer needs the mod's to resolve classes
+            Thread.currentThread().setContextClassLoader(StreamManager.class.getClassLoader());
+            return FFmpegLoader.ensureLoaded(nativesDir());
+        }).thenAccept(ok -> mc.execute(() -> {
             if (ok) then.run();
             else message(ChatFormatting.RED, "FFmpeg failed to load: " + FFmpegLoader.getFailure());
         }));
@@ -122,11 +149,11 @@ public final class StreamManager {
         }
 
         message(ChatFormatting.GRAY, "Loading FFmpeg...");
-        LoopbackStream.Settings settings = new LoopbackStream.Settings(fps, kbps, maxHeight * 16 / 9, maxHeight);
+        LoopbackStream.Settings settings = new LoopbackStream.Settings(fps, kbps, maxHeight * 16 / 9, maxHeight, 64);
         withFFmpeg(() -> {
             if (screen.browser != browser || STREAMS.containsKey(screen)) return;
-            STREAMS.put(screen, new LoopbackStream(screen, browser, settings));
-            message(ChatFormatting.GREEN, String.format("Loopback started: %d fps, %d kbps, max %dp. The screen now shows the decoded stream.", fps, kbps, maxHeight));
+            start(screen, browser, settings);
+            message(ChatFormatting.GREEN, String.format("Loopback started: %d fps, %d kbps, max %dp. The screen now shows the decoded stream. Playing audio pauses ~3 s while it switches to the stream.", fps, kbps, maxHeight));
         });
         return 1;
     }
@@ -152,7 +179,10 @@ public final class StreamManager {
                 }))
                 .then(Commands.literal("encoders").executes(ctx -> {
                     message(ChatFormatting.GRAY, "Probing encoders...");
-                    withFFmpeg(() -> CompletableFuture.supplyAsync(H264Encoder::available).thenAccept(list ->
+                    withFFmpeg(() -> CompletableFuture.supplyAsync(() -> {
+                        Thread.currentThread().setContextClassLoader(StreamManager.class.getClassLoader());
+                        return H264Encoder.available();
+                    }).thenAccept(list ->
                             Minecraft.getInstance().execute(() -> message(ChatFormatting.AQUA, "Working encoders (in order of preference): "
                                     + (list.isEmpty() ? "none" : list.stream().map(H264Encoder.Candidate::label).collect(Collectors.joining(", ")))))));
                     return 1;
@@ -187,7 +217,7 @@ public final class StreamManager {
         for (Iterator<Map.Entry<ScreenData, LoopbackStream>> it = STREAMS.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<ScreenData, LoopbackStream> e = it.next();
             if (e.getKey().browser != e.getValue().browser) {
-                e.getValue().close();
+                closeStream(e.getValue());
                 it.remove();
             }
         }

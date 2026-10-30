@@ -15,6 +15,10 @@ final class StreamStats {
     final AtomicLong decodeNanos = new AtomicLong();
     final AtomicLong decodedFrames = new AtomicLong();
     final AtomicLong latencyNanos = new AtomicLong();
+    final AtomicLong audioBytes = new AtomicLong();
+
+    /** Supplies the audio line (buffer / underruns) from the current audio route; set by the stream. */
+    volatile java.util.function.Supplier<String> audioStatus = () -> "audio: -";
 
     volatile String encoderName = "-";
     volatile String resolution = "-";
@@ -33,6 +37,7 @@ final class StreamStats {
             long b = bytes.getAndSet(0), keys = keyFrames.getAndSet(0);
             long encNs = encodeNanos.getAndSet(0), decNs = decodeNanos.getAndSet(0), dec = decodedFrames.getAndSet(0);
             long latNs = latencyNanos.getAndSet(0);
+            long ab = audioBytes.getAndSet(0);
 
             List<String> l = new ArrayList<>();
             l.add("encoder " + encoderName + "  " + resolution);
@@ -40,6 +45,7 @@ final class StreamStats {
             l.add(String.format("bitrate %.0f kbps  (key frames %d)", b * 8 / 1000.0 / secs, keys));
             l.add(String.format("encode %.1f ms  decode %.1f ms", enc == 0 ? 0 : encNs / 1e6 / enc, dec == 0 ? 0 : decNs / 1e6 / dec));
             l.add(String.format("capture->display %.0f ms", disp == 0 ? 0 : latNs / 1e6 / disp));
+            l.add(String.format("audio opus %.0f kbps  ", ab * 8 / 1000.0 / secs) + audioStatus.get());
             if (error != null) l.add("error: " + error);
             lines = l;
         }

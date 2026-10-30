@@ -2,6 +2,9 @@ import net.montoyo.wd.client.stream.codec.EncodedPacket;
 import net.montoyo.wd.client.stream.codec.FFmpegLoader;
 import net.montoyo.wd.client.stream.codec.H264Decoder;
 import net.montoyo.wd.client.stream.codec.H264Encoder;
+import net.montoyo.wd.client.stream.codec.OpusDecoder;
+import net.montoyo.wd.client.stream.codec.OpusEncoder;
+import net.montoyo.wd.client.stream.audio.LinearResampler;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -29,6 +32,67 @@ public class StreamBench {
 
         for (H264Encoder.Candidate c : available)
             run(c);
+
+        audio();
+    }
+
+    /** 1 kHz sine at 44.1 kHz in CEF-sized blocks -> resample to 48 kHz -> Opus -> decode; checks pitch and level. */
+    static void audio() throws Exception {
+        final int inRate = 44100, seconds = 3, block = 1024;
+        final float amp = 0.5f;
+        LinearResampler resampler = new LinearResampler(inRate, OpusEncoder.SAMPLE_RATE);
+        float[] resampled = new float[OpusEncoder.SAMPLE_RATE * seconds + 4096];
+        int nRes = 0;
+        float[] in = new float[block];
+        for (int pos = 0; pos + block <= inRate * seconds; pos += block) {
+            for (int i = 0; i < block; i++) in[i] = amp * (float) Math.sin(2 * Math.PI * 1000 * (pos + i) / inRate);
+            int n = resampler.process(in, block);
+            System.arraycopy(resampler.output(), 0, resampled, nRes, n);
+            nRes += n;
+        }
+
+        float[] decoded = new float[nRes + 4096];
+        int[] nDec = {0};
+        long encNs = 0, decNs = 0, bytes = 0;
+        int frames = 0;
+        try (OpusEncoder enc = new OpusEncoder(64000); OpusDecoder dec = new OpusDecoder()) {
+            int fs = enc.getFrameSize();
+            for (int off = 0; off + fs <= nRes; off += fs) {
+                long t0 = System.nanoTime();
+                var packets = enc.encode(resampled, off);
+                encNs += System.nanoTime() - t0;
+                frames++;
+                for (EncodedPacket p : packets) {
+                    bytes += p.data().length;
+                    long t1 = System.nanoTime();
+                    dec.decode(p, (samples, count) -> {
+                        System.arraycopy(samples, 0, decoded, nDec[0], count);
+                        nDec[0] += count;
+                    });
+                    decNs += System.nanoTime() - t1;
+                }
+            }
+            System.out.printf("%nOpus frame size %d samples (%.1f ms)%n", fs, fs * 1000.0 / OpusEncoder.SAMPLE_RATE);
+        }
+
+        System.out.printf("resampler: %d samples in -> %d out (expected ~%d), pitch %.1f Hz%n",
+                inRate * seconds / block * block, nRes, (long) (inRate * seconds / block * block) * 48000 / inRate, pitch(resampled, 4800, nRes));
+        // skip the first 100 ms (codec start-up) when measuring
+        System.out.printf("opus: enc %.3f ms  dec %.3f ms per frame, %.0f kbps, decoded %d samples, pitch %.1f Hz, rms %.3f (input %.3f)%n",
+                encNs / 1e6 / frames, decNs / 1e6 / frames, bytes * 8 / 1000.0 / seconds, nDec[0],
+                pitch(decoded, 4800, nDec[0]), rms(decoded, 4800, nDec[0]), rms(resampled, 4800, nRes));
+    }
+
+    static double pitch(float[] s, int from, int to) {
+        int crossings = 0;
+        for (int i = from + 1; i < to; i++) if (s[i - 1] < 0 && s[i] >= 0) crossings++;
+        return crossings / ((to - from) / (double) OpusEncoder.SAMPLE_RATE);
+    }
+
+    static double rms(float[] s, int from, int to) {
+        double sum = 0;
+        for (int i = from; i < to; i++) sum += s[i] * s[i];
+        return Math.sqrt(sum / (to - from));
     }
 
     static void run(H264Encoder.Candidate c) throws Exception {

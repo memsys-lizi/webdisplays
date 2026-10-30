@@ -3,6 +3,10 @@ package net.montoyo.wd.client.stream;
 import net.montoyo.wd.client.stream.codec.EncodedPacket;
 import net.montoyo.wd.client.stream.codec.H264Decoder;
 import net.montoyo.wd.client.stream.codec.H264Encoder;
+import net.montoyo.wd.client.stream.codec.OpusDecoder;
+import net.montoyo.wd.client.stream.codec.OpusEncoder;
+import net.montoyo.wd.client.stream.audio.AudioTap;
+import net.montoyo.wd.client.stream.audio.BrowserAudioRoute;
 import net.montoyo.wd.entity.ScreenData;
 import net.montoyo.wd.utilities.browser.WDClientBrowser;
 import org.apache.logging.log4j.LogManager;
@@ -20,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public final class LoopbackStream {
     private static final Logger LOG = LogManager.getLogger("WebDisplays/Stream");
 
-    public record Settings(int fps, int bitrateKbps, int maxWidth, int maxHeight) {
+    public record Settings(int fps, int bitrateKbps, int maxWidth, int maxHeight, int audioBitrateKbps) {
     }
 
     private record InFlight(EncodedPacket packet, long captureNanos) {
@@ -46,8 +50,15 @@ public final class LoopbackStream {
     private final FrameMailbox mailbox = new FrameMailbox();
     private final StreamTexture texture = new StreamTexture();
 
+    // audio: CEF audio thread -> Opus -> wire -> audio thread -> Opus decoder -> positional player
+    private final Object audioLock = new Object();
+    private OpusEncoder opusEncoder;
+    private float[] opusFrame;
+    private int opusFill;
+    private final LinkedBlockingQueue<EncodedPacket> audioWire = new LinkedBlockingQueue<>();
+
     private volatile boolean running = true;
-    private final Thread encodeThread, decodeThread;
+    private final Thread encodeThread, decodeThread, audioThread;
 
     LoopbackStream(ScreenData screen, WDClientBrowser browser, Settings settings) {
         this.screen = screen;
@@ -57,10 +68,20 @@ public final class LoopbackStream {
 
         encodeThread = new Thread(this::encodeLoop, "WD stream encoder");
         decodeThread = new Thread(this::decodeLoop, "WD stream decoder");
+        audioThread = new Thread(this::audioLoop, "WD stream audio");
         encodeThread.setDaemon(true);
         decodeThread.setDaemon(true);
+        audioThread.setDaemon(true);
         encodeThread.start();
         decodeThread.start();
+        audioThread.start();
+
+        stats.audioStatus = () -> {
+            BrowserAudioRoute route = AudioTap.INSTANCE.routeFor(browser);
+            if (route == null) return "waiting for sound";
+            return String.format("buffer %d ms  restarts %d  dropped %d", route.getPlayer().getBufferedMs(),
+                    route.getPlayer().getUnderruns(), route.getPlayer().getDropped());
+        };
 
         browser.setFrameListener(this::onPaint);
         browser.requestFullRepaint();
@@ -155,6 +176,52 @@ public final class LoopbackStream {
         }
     }
 
+    /** CEF audio thread: mono 48 kHz samples captured from the browser. */
+    public void audioIn(float[] samples, int count) {
+        synchronized (audioLock) {
+            if (!running) return;
+            try {
+                if (opusEncoder == null) {
+                    opusEncoder = new OpusEncoder(settings.audioBitrateKbps() * 1000);
+                    opusFrame = new float[opusEncoder.getFrameSize()];
+                }
+                int i = 0;
+                while (i < count) {
+                    int n = Math.min(count - i, opusFrame.length - opusFill);
+                    System.arraycopy(samples, i, opusFrame, opusFill, n);
+                    opusFill += n;
+                    i += n;
+                    if (opusFill == opusFrame.length) {
+                        opusFill = 0;
+                        for (EncodedPacket p : opusEncoder.encode(opusFrame, 0)) {
+                            stats.audioBytes.addAndGet(p.data().length);
+                            audioWire.offer(p);
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                LOG.error("Audio encoder failed", t);
+                stats.error = "audio: " + t.getMessage();
+            }
+        }
+    }
+
+    private void audioLoop() {
+        try (OpusDecoder decoder = new OpusDecoder()) {
+            while (running) {
+                EncodedPacket p = audioWire.poll(100, TimeUnit.MILLISECONDS);
+                if (p == null) continue;
+                BrowserAudioRoute route = AudioTap.INSTANCE.routeFor(browser);
+                if (route == null) continue;
+                decoder.decode(p, route.getPlayer()::feed);
+            }
+        } catch (InterruptedException ignored) {
+        } catch (Throwable t) {
+            LOG.error("Audio decoder failed", t);
+            stats.error = "audio: " + t.getMessage();
+        }
+    }
+
     /** Scales the browser size down to fit the configured maximum, keeping the aspect ratio. */
     private int[] fit(int w, int h) {
         double scale = Math.min(1.0, Math.min(settings.maxWidth() / (double) w, settings.maxHeight() / (double) h));
@@ -183,7 +250,14 @@ public final class LoopbackStream {
         try {
             encodeThread.join(2000);
             decodeThread.join(2000);
+            audioThread.join(2000);
         } catch (InterruptedException ignored) {
+        }
+        synchronized (audioLock) {
+            if (opusEncoder != null) {
+                opusEncoder.close();
+                opusEncoder = null;
+            }
         }
         texture.delete();
     }

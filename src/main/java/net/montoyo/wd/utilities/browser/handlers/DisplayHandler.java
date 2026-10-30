@@ -59,6 +59,9 @@ public class DisplayHandler implements CefDisplayHandler {
 
     @Override
     public boolean onConsoleMessage(CefBrowser cefBrowser, CefSettings.LogSeverity logSeverity, String s, String s1, int i) {
+        // messages from scripts WebDisplays injects itself
+        if (s != null && s.startsWith("[WebDisplays]"))
+            net.montoyo.wd.utilities.Log.info("%s", s);
         return false;
     }
 
