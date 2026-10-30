@@ -7,7 +7,7 @@ package net.montoyo.wd.client.gui;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.GuiGraphics;
+import net.montoyo.wd.client.compat.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.language.I18n;
@@ -80,9 +80,9 @@ public class RenderRecipe extends Screen {
     }
     
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float partialTick) {
-//        renderBackground(poseStack);
-        renderBackground(context);
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        GuiGraphics context = GuiGraphics.of(poseStack);
+        renderBackground(poseStack);
 
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         RenderSystem.setShaderTexture(0, CRAFTING_TABLE_GUI_TEXTURES);

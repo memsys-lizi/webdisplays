@@ -6,7 +6,7 @@ package net.montoyo.wd.client.gui;
 
 import com.cinemamod.mcef.MCEFBrowser;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
+import net.montoyo.wd.client.compat.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -37,8 +37,8 @@ import net.montoyo.wd.utilities.serialization.TypeData;
 import net.montoyo.wd.utilities.serialization.Util;
 import org.cef.browser.CefBrowser;
 import org.cef.misc.CefCursorType;
-import org.joml.Matrix4f;
-import org.joml.Vector4f;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector4f;
 import org.lwjgl.glfw.GLFW;
 import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
@@ -308,11 +308,17 @@ public class GuiKeyboard extends WDScreen {
         camera.mulPose(Axis.YP.rotationDegrees(angle[1] + 180.0F));
 
         Vector4f coord = new Vector4f(2f * (float) mouseX, 2 * (float) mouseY, 0, 1f);
-        coord.add(proj.invert().transform(coord));
-        coord = camera.last().pose().invert().transform(coord);
+        // (JOML's transform() mutated coord in place, so the original add() doubled it)
+        Matrix4f invProj = proj.copy();
+        invProj.invert();
+        coord.transform(invProj);
+        coord.mul(2.0f);
+        Matrix4f invCamera = camera.last().pose().copy();
+        invCamera.invert();
+        coord.transform(invCamera);
 
         Vec3 vec3 = e.getEyePosition(pct);
-        Vec3 vec31 = new Vec3(coord.x, coord.y, coord.z).normalize();
+        Vec3 vec31 = new Vec3(coord.x(), coord.y(), coord.z()).normalize();
 
         BlockHitResult result = tes.trace(side, vec3, vec31);
         if (result.getType() != HitResult.Type.MISS) {

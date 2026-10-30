@@ -9,7 +9,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.montoyo.wd.client.compat.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -116,9 +117,13 @@ public abstract class WDScreen extends Screen {
     }
 
     @Override
+    public final void render(PoseStack poseStack, int mouseX, int mouseY, float ptt) {
+        render(GuiGraphics.of(poseStack), mouseX, mouseY, ptt);
+    }
+
     public void render(GuiGraphics poseStack, int mouseX, int mouseY, float ptt) {
         if(defaultBackground)
-            renderBackground(poseStack);
+            renderBackground(poseStack.pose());
 
         RenderSystem.setShaderColor(1.f, 1.f, 1.f, 1.f);
         

@@ -13,7 +13,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.montoyo.wd.client.compat.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.locale.Language;
@@ -84,7 +84,7 @@ public class GuiMinePad extends WDScreen {
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float ptt) {
 		width = trueWidth;
 		height = trueHeight;
-		renderBackground(graphics);
+		renderBackground(graphics.pose());
 		width = (int) vw;
 		height = (int) vh;
 

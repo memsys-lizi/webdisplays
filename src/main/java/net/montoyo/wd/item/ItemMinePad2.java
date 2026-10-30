@@ -74,7 +74,7 @@ public class ItemMinePad2 extends Item implements WDItem {
 
     @Override
     public boolean onEntityItemUpdate(ItemStack stack, ItemEntity ent) {
-        if (ent.onGround() && !ent.level().isClientSide) {
+        if (ent.isOnGround() && !ent.level.isClientSide) {
             CompoundTag tag = ent.getItem().getTag();
 
             if (tag != null && tag.contains("ThrowHeight")) {
@@ -93,11 +93,11 @@ public class ItemMinePad2 extends Item implements WDItem {
                     ent.getItem().setTag(null);
 
                 if (thrower != null && height - ent.getBlockY() >= 20.0) {
-                    ent.level().playSound(null, ent.getBlockX(), ent.getBlockY(), ent.getBlockZ(), SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 4.0f, 1.0f);
-                    ent.level().addFreshEntity(new ItemEntity(ent.level(), ent.getBlockX(), ent.getBlockY(), ent.getBlockZ(), CraftComponent.EXTCARD.makeItemStack()));
+                    ent.level.playSound(null, ent.getBlockX(), ent.getBlockY(), ent.getBlockZ(), SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 4.0f, 1.0f);
+                    ent.level.addFreshEntity(new ItemEntity(ent.level, ent.getBlockX(), ent.getBlockY(), ent.getBlockZ(), CraftComponent.EXTCARD.makeItemStack()));
                     ent.setRemoved(Entity.RemovalReason.CHANGED_DIMENSION);
 
-                    Player ply = ent.level().getPlayerByUUID(thrower);
+                    Player ply = ent.level.getPlayerByUUID(thrower);
                     if (ply != null && ply instanceof ServerPlayer)
                         WebDisplays.INSTANCE.criterionPadBreak.trigger(((ServerPlayer) ply).getAdvancements());
                 }

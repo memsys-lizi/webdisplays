@@ -9,7 +9,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.montoyo.wd.client.compat.GuiGraphics;
 import net.montoyo.wd.client.gui.loading.JsonOWrapper;
 import net.montoyo.wd.utilities.data.Bounds;
 

@@ -830,7 +830,7 @@ public class ScreenBlockEntity extends BlockEntity {
         isCopy.setCount(1);
 
         scr.upgrades.add(isCopy);
-        if (player != null && !player.level().isClientSide) {
+        if (player != null && !player.level.isClientSide) {
             WDNetworkRegistry.INSTANCE.send(PacketDistributor.NEAR.with(() -> point(level, getBlockPos())), S2CMessageScreenUpdate.upgrade(this, side, true, is));
             itemAsUpgrade.onInstall(this, side, player, isCopy);
             playSoundAt(WebDisplays.INSTANCE.soundUpgradeAdd, getBlockPos(), 1.0f, 1.0f);
@@ -894,7 +894,7 @@ public class ScreenBlockEntity extends BlockEntity {
         if (idxToRemove >= 0) {
             dropUpgrade(scr.upgrades.get(idxToRemove), side, player);
             scr.upgrades.remove(idxToRemove);
-            if (player != null && !player.level().isClientSide) {
+            if (player != null && !player.level.isClientSide) {
                 WDNetworkRegistry.INSTANCE.send(PacketDistributor.NEAR.with(() -> point(level, getBlockPos())), S2CMessageScreenUpdate.upgrade(this, side, false, is));
                 playSoundAt(WebDisplays.INSTANCE.soundUpgradeDel, getBlockPos(), 1.0f, 1.0f);
             }
@@ -1119,7 +1119,10 @@ public class ScreenBlockEntity extends BlockEntity {
 
     public BlockHitResult trace(BlockSide side, Vec3 start, Vec3 look) {
         AABB box = getRenderBoundingBox();
-        double pHitDistance = box.distanceToSqr(start) + 2;
+        double dx = Math.max(Math.max(box.minX - start.x, start.x - box.maxX), 0.0);
+        double dy = Math.max(Math.max(box.minY - start.y, start.y - box.maxY), 0.0);
+        double dz = Math.max(Math.max(box.minZ - start.z, start.z - box.maxZ), 0.0);
+        double pHitDistance = dx * dx + dy * dy + dz * dz + 2; // AABB.distanceToSqr(Vec3) (1.20)
 
         Vec3 vec32 = start.add(look.x * pHitDistance, look.y * pHitDistance, look.z * pHitDistance);
 

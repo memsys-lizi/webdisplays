@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.joml.Matrix4f;
+import com.mojang.math.Matrix4f;
 
 @OnlyIn(Dist.CLIENT)
 public final class ModelMinePad {

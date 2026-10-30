@@ -16,7 +16,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.gui.GuiGraphics;
+import net.montoyo.wd.client.compat.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientAdvancements;
@@ -583,7 +583,7 @@ public class ClientProxy extends SharedProxy implements ResourceManagerReloadLis
 			return;
 		
 		lastTracked++;
-		if (tes.getLevel() != mc.player.level()) {
+		if (tes.getLevel() != mc.player.level) {
 			// TODO: properly handle this
 			// probably gonna want a helper class for cross-dimensional distances
 			if (!tes.isLoaded())

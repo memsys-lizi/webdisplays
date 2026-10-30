@@ -6,7 +6,7 @@ package net.montoyo.wd.client.gui.controls;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.GuiGraphics;
+import net.montoyo.wd.client.compat.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.montoyo.wd.client.gui.loading.JsonOWrapper;
 import org.lwjgl.opengl.GL;

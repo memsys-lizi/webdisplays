@@ -23,7 +23,7 @@ import net.montoyo.wd.client.ClientProxy;
 import net.montoyo.wd.config.ClientConfig;
 import net.montoyo.wd.item.ItemMinePad2;
 
-import static com.mojang.math.Axis.*;
+import static net.montoyo.wd.client.compat.Axis.*;
 
 @OnlyIn(Dist.CLIENT)
 public final class MinePadRenderer implements IItemRenderer {

@@ -24,11 +24,11 @@ public class ItemRegistry {
     protected static final RegistryObject<Item>[] COMP_CRAFT_ITEMS = new RegistryObject[CraftComponent.values().length];
     protected static final RegistryObject<Item>[] UPGRADE_ITEMS = new RegistryObject[DefaultUpgrade.values().length];
 
-    public static final RegistryObject<Item> CONFIGURATOR = ITEMS.register("screencfg", () -> new ItemScreenConfigurator(new Item.Properties()));
-    public static final RegistryObject<Item> OWNERSHIP_THEIF = ITEMS.register("ownerthief", () -> new ItemOwnershipThief(new Item.Properties()));
-    public static final RegistryObject<Item> LINKER = ITEMS.register("linker", () -> new ItemLinker(new Item.Properties()));
-    public static final RegistryObject<Item> MINEPAD = ITEMS.register("minepad", () -> new ItemMinePad2(new Item.Properties()));
-    public static final RegistryObject<Item> LASER_POINTER = ITEMS.register("laserpointer", () -> new ItemLaserPointer(new Item.Properties()));
+    public static final RegistryObject<Item> CONFIGURATOR = ITEMS.register("screencfg", () -> new ItemScreenConfigurator(new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
+    public static final RegistryObject<Item> OWNERSHIP_THEIF = ITEMS.register("ownerthief", () -> new ItemOwnershipThief(new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
+    public static final RegistryObject<Item> LINKER = ITEMS.register("linker", () -> new ItemLinker(new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
+    public static final RegistryObject<Item> MINEPAD = ITEMS.register("minepad", () -> new ItemMinePad2(new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
+    public static final RegistryObject<Item> LASER_POINTER = ITEMS.register("laserpointer", () -> new ItemLaserPointer(new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
 
     static {
         DefaultUpgrade[] defaultUpgrades = DefaultUpgrade.values();
@@ -40,16 +40,16 @@ public class ItemRegistry {
         CraftComponent[] components = CraftComponent.values();
         for (int i = 0; i < components.length; i++) {
             CraftComponent cc = components[i];
-            COMP_CRAFT_ITEMS[i] = ITEMS.register("craftcomp_" + cc.name().toLowerCase(Locale.ROOT), () -> new ItemCraftComponent(new Item.Properties()));
+            COMP_CRAFT_ITEMS[i] = ITEMS.register("craftcomp_" + cc.name().toLowerCase(Locale.ROOT), () -> new ItemCraftComponent(new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
         }
     }
 
-    public static final RegistryObject<Item> SCREEN = ITEMS.register("screen", () -> new BlockItem(BlockRegistry.SCREEN_BLOCk.get(), new Item.Properties()/*.tab(WebDisplays.CREATIVE_TAB)*/));
+    public static final RegistryObject<Item> SCREEN = ITEMS.register("screen", () -> new BlockItem(BlockRegistry.SCREEN_BLOCk.get(), new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
 
-    public static final RegistryObject<Item> KEYBOARD = ITEMS.register("keyboard", () -> new KeyboardItem(BlockRegistry.KEYBOARD_BLOCK.get(), new Item.Properties()/*.tab(WebDisplays.CREATIVE_TAB)*/));
-    public static final RegistryObject<Item> REDSTONE_CONTROLLER = ITEMS.register("redctrl", () -> new BlockItem(BlockRegistry.REDSTONE_CONTROL_BLOCK.get(), new Item.Properties()/*.tab(WebDisplays.CREATIVE_TAB)*/));
-    public static final RegistryObject<Item> REMOTE_CONTROLLER = ITEMS.register("rctrl", () -> new BlockItem(BlockRegistry.REMOTE_CONTROLLER_BLOCK.get(), new Item.Properties()/*.tab(WebDisplays.CREATIVE_TAB)*/));
-    public static final RegistryObject<Item> SERVER = ITEMS.register("server", () -> new BlockItem(BlockRegistry.SERVER_BLOCK.get(), new Item.Properties()/*.tab(WebDisplays.CREATIVE_TAB)*/));
+    public static final RegistryObject<Item> KEYBOARD = ITEMS.register("keyboard", () -> new KeyboardItem(BlockRegistry.KEYBOARD_BLOCK.get(), new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
+    public static final RegistryObject<Item> REDSTONE_CONTROLLER = ITEMS.register("redctrl", () -> new BlockItem(BlockRegistry.REDSTONE_CONTROL_BLOCK.get(), new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
+    public static final RegistryObject<Item> REMOTE_CONTROLLER = ITEMS.register("rctrl", () -> new BlockItem(BlockRegistry.REMOTE_CONTROLLER_BLOCK.get(), new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
+    public static final RegistryObject<Item> SERVER = ITEMS.register("server", () -> new BlockItem(BlockRegistry.SERVER_BLOCK.get(), new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
 
     public static RegistryObject<Item> getComputerCraftItem(int index) {
         return COMP_CRAFT_ITEMS[index];

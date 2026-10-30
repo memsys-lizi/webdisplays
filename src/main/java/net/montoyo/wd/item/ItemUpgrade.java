@@ -20,7 +20,7 @@ public class ItemUpgrade extends ItemMulti implements IUpgrade, WDItem {
     public final DefaultUpgrade type;
 
     public ItemUpgrade(DefaultUpgrade type) {
-        super(DefaultUpgrade.class, new Properties()/*.tab(WebDisplays.CREATIVE_TAB)*/);
+        super(DefaultUpgrade.class, new Properties().tab(net.montoyo.wd.registry.WDTabs.EXAMPLE_TAB));
         this.type = type;
     }
 

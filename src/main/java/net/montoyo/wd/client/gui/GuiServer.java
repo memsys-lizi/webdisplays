@@ -8,7 +8,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.montoyo.wd.client.compat.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -147,7 +147,7 @@ public class GuiServer extends WDScreen {
 		float xd2 = (float) (x + w);
 		float yd = (float) y;
 		float yd2 = (float) (y + h);
-		float zd = (float) getBlitOffset();
+		float zd = (float) getBlitOffsetF();
 
 //        RenderSystem.disableTexture();
 		RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -162,7 +162,7 @@ public class GuiServer extends WDScreen {
 //        RenderSystem.enableTexture();
 	}
 	
-	private float getBlitOffset() {
+	private float getBlitOffsetF() {
 		return 0;
 	}
 	

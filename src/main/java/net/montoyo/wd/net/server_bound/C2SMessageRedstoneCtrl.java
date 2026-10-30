@@ -42,9 +42,9 @@ public class C2SMessageRedstoneCtrl extends Packet implements Runnable {
 	
 	@Override
 	public void run() {
-		Level world = player.level();
+		Level world = player.level;
 		BlockPos blockPos = pos.toBlock();
-		final double maxRange = player.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
+		final double maxRange = player.getAttribute(ForgeMod.REACH_DISTANCE.get()).getValue();
 		
 		if (player.distanceToSqr(blockPos.getX(), blockPos.getY(), blockPos.getZ()) > maxRange * maxRange)
 			return;

@@ -19,7 +19,7 @@ import net.montoyo.wd.utilities.math.Vector3f;
 import net.montoyo.wd.utilities.math.Vector3i;
 import org.jetbrains.annotations.NotNull;
 
-import static com.mojang.math.Axis.*;
+import static net.montoyo.wd.client.compat.Axis.*;
 
 public class ScreenRenderer implements BlockEntityRenderer<ScreenBlockEntity> {
 	public ScreenRenderer() {

@@ -253,7 +253,7 @@ public class WebDisplays {
 
     @SubscribeEvent
     public void onToss(ItemTossEvent ev) {
-        if(!ev.getEntity().level().isClientSide) {
+        if(!ev.getEntity().level.isClientSide) {
             ItemStack is = ev.getEntity().getItem();
 
             if(is.getItem() == ItemRegistry.MINEPAD.get()) {
@@ -278,8 +278,8 @@ public class WebDisplays {
             if((ev.getEntity() instanceof ServerPlayer && !hasPlayerAdvancement((ServerPlayer) ev.getEntity(), ADV_PAD_BREAK)) || PROXY.hasClientPlayerAdvancement(ADV_PAD_BREAK) != HasAdvancement.YES) {
                 ev.getCrafting().setDamageValue(CraftComponent.BADEXTCARD.ordinal());
 
-                if(!ev.getEntity().level().isClientSide)
-                    ev.getEntity().level().playSound(null, ev.getEntity().getX(), ev.getEntity().getY(), ev.getEntity().getZ(), SoundEvents.ITEM_BREAK, SoundSource.MASTER, 1.0f, 1.0f);
+                if(!ev.getEntity().level.isClientSide)
+                    ev.getEntity().level.playSound(null, ev.getEntity().getX(), ev.getEntity().getY(), ev.getEntity().getZ(), SoundEvents.ITEM_BREAK, SoundSource.MASTER, 1.0f, 1.0f);
             }
         }
     }
@@ -295,7 +295,7 @@ public class WebDisplays {
             return;
         }
 
-        if(!ev.getEntity().level().isClientSide && ev.getEntity() instanceof ServerPlayer) {
+        if(!ev.getEntity().level.isClientSide && ev.getEntity() instanceof ServerPlayer) {
             IWDDCapability cap = ev.getEntity().getCapability(WDDCapability.Provider.cap, null).orElseThrow(RuntimeException::new);
 
             if(cap.isFirstRun()) {
@@ -318,7 +318,7 @@ public class WebDisplays {
 
     @SubscribeEvent
     public void onLogOut(PlayerEvent.PlayerLoggedOutEvent ev) {
-        if(!ev.getEntity().level().isClientSide)
+        if(!ev.getEntity().level.isClientSide)
             Server.getInstance().getClientManager().revokeClientKey(ev.getEntity().getGameProfile().getId());
     }
 
@@ -359,7 +359,7 @@ public class WebDisplays {
 
         if(sb.toString().equals("ironic he could save others from death but not himself")) {
             Player ply = ev.getPlayer();
-            ply.level().playSound(null, ply.getX(), ply.getY(), ply.getZ(), soundIronic, SoundSource.PLAYERS, 1.0f, 1.0f);
+            ply.level.playSound(null, ply.getX(), ply.getY(), ply.getZ(), soundIronic, SoundSource.PLAYERS, 1.0f, 1.0f);
         }
     }
 
@@ -386,7 +386,7 @@ public class WebDisplays {
 
     private static SoundEvent registerSound(String resName) {
         ResourceLocation resLoc = new ResourceLocation("webdisplays", resName);
-        SoundEvent ret = SoundEvent.createVariableRangeEvent(resLoc);
+        SoundEvent ret = new SoundEvent(resLoc);
 
         SOUNDS.register(resName, () -> ret);
         return ret;

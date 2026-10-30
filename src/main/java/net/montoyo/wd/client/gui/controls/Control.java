@@ -10,7 +10,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.montoyo.wd.client.compat.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -21,11 +21,11 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.montoyo.wd.client.gui.WDScreen;
 import net.montoyo.wd.client.gui.loading.JsonOWrapper;
 import net.montoyo.wd.utilities.data.Bounds;
-import org.joml.Matrix4f;
+import com.mojang.math.Matrix4f;
 
 import java.util.Arrays;
 
-import static com.mojang.math.Axis.XP;
+import static net.montoyo.wd.client.compat.Axis.XP;
 
 @OnlyIn(Dist.CLIENT)
 public abstract class Control {
@@ -133,11 +133,14 @@ public abstract class Control {
         RenderSystem.enableBlend();
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 
-        VertexConsumer consumer = source.getBuffer(RenderType.gui());
-        consumer.vertex(x1, y2, 0.0).color(r, g, b, a).endVertex();
-        consumer.vertex(x2, y2, 0.0).color(r, g, b, a).endVertex();
-        consumer.vertex(x2, y1, 0.0).color(r, g, b, a).endVertex();
-        consumer.vertex(x1, y1, 0.0).color(r, g, b, a).endVertex();
+        // 1.19.2 has no RenderType.gui(), draw the quad immediately instead
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        vBuffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        vBuffer.vertex(x1, y2, 0.0).color(r, g, b, a).endVertex();
+        vBuffer.vertex(x2, y2, 0.0).color(r, g, b, a).endVertex();
+        vBuffer.vertex(x2, y1, 0.0).color(r, g, b, a).endVertex();
+        vBuffer.vertex(x1, y1, 0.0).color(r, g, b, a).endVertex();
+        tessellator.end();
 
         RenderSystem.setShaderColor(sdrCol[0], sdrCol[1], sdrCol[2], sdrCol[3]);
 
@@ -234,17 +237,17 @@ public abstract class Control {
         fbo.bindWrite(true);
 
         RenderSystem.backupProjectionMatrix();
-        RenderSystem.setProjectionMatrix(new Matrix4f().ortho(0.0f, vpW, vpH, 0.0f, -1.0f,1.0f), VertexSorting.ORTHOGRAPHIC_Z);
+        RenderSystem.setProjectionMatrix(Matrix4f.orthographic(0.0f, vpW, 0.0f, vpH, -1.0f, 1.0f));
 
-        tmpGraphics.pose().last().pose().set(RenderSystem.getModelViewStack().last().pose());
-        tmpGraphics.pose().last().normal().set(RenderSystem.getModelViewStack().last().normal());
+        tmpGraphics.pose().last().pose().load(RenderSystem.getModelViewStack().last().pose());
+        tmpGraphics.pose().last().normal().load(RenderSystem.getModelViewStack().last().normal());
         PoseStack poseStack = tmpGraphics.pose();
         poseStack.pushPose();
         poseStack.setIdentity();
         poseStack.mulPose(XP.rotationDegrees(180.0f));
         RenderSystem.getModelViewStack().pushPose();
-        RenderSystem.getModelViewStack().last().pose().set(poseStack.last().pose());
-        RenderSystem.getModelViewStack().last().normal().set(poseStack.last().normal());
+        RenderSystem.getModelViewStack().last().pose().load(poseStack.last().pose());
+        RenderSystem.getModelViewStack().last().normal().load(poseStack.last().normal());
         RenderSystem.applyModelViewMatrix();
 
         if(!fbo.useDepth)

@@ -41,7 +41,7 @@ public class ScreenModelLoader implements IGeometryLoader<ScreenModelLoader.Scre
     public static class ScreenModelGeometry implements IUnbakedGeometry<ScreenModelGeometry> {
         
         @Override
-        public BakedModel bake(IGeometryBakingContext context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation) {
+        public BakedModel bake(IGeometryBakingContext context, ModelBakery bakery, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation) {
             return new ScreenBaker(modelState, spriteGetter, overrides, context.getTransforms());
         }
         
@@ -55,11 +55,11 @@ public class ScreenModelLoader implements IGeometryLoader<ScreenModelLoader.Scre
 //            return IUnbakedGeometry.super.getConfigurableComponentNames();
 //        }
 
-        // TODO: ?
-//        @Override
-//        public Collection<Material> getMaterials(IGeometryBakingContext iGeometryBakingContext, Function<ResourceLocation, UnbakedModel> function, Set<Pair<String, String>> set) {
-//            return Arrays.asList(MATERIALS_SIDES);
-//        }
+        // 1.19.2 has no atlas source files, so the screen sprites must be requested here to get stitched
+        @Override
+        public Collection<Material> getMaterials(IGeometryBakingContext iGeometryBakingContext, Function<ResourceLocation, UnbakedModel> function, Set<Pair<String, String>> set) {
+            return Arrays.asList(MATERIALS_SIDES);
+        }
     }
 }
 

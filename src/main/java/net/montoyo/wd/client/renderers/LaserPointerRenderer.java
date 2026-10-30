@@ -18,9 +18,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.montoyo.wd.client.ClientProxy;
 import net.montoyo.wd.registry.ItemRegistry;
 import net.montoyo.wd.item.ItemLaserPointer;
-import org.joml.Matrix4f;
+import com.mojang.math.Matrix4f;
 
-import static com.mojang.math.Axis.*;
+import static net.montoyo.wd.client.compat.Axis.*;
 
 @OnlyIn(Dist.CLIENT)
 public final class LaserPointerRenderer implements IItemRenderer {
