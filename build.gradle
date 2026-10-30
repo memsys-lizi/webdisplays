@@ -88,8 +88,21 @@ repositories{
     mavenLocal()
 }
 
+configurations {
+    // libraries shaded into the mod jar (and put on the dev runtime module path)
+    shade
+    implementation.extendsFrom shade
+    minecraftLibrary.extendsFrom shade
+}
+
 dependencies {
     minecraft 'net.minecraftforge:forge:1.19.2-43.5.2'
+
+    // screen streaming: FFmpeg (LGPL build) through JavaCPP
+    shade "org.bytedeco:javacpp:${javacpp_version}"
+    shade "org.bytedeco:javacpp:${javacpp_version}:${natives_platform}"
+    shade "org.bytedeco:ffmpeg:${ffmpeg_version}"
+    shade "org.bytedeco:ffmpeg:${ffmpeg_version}:${natives_platform}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     // here because we need to manually open the VR keyboard
@@ -100,8 +113,36 @@ dependencies {
     }
 }
 
+// List of bundled native libraries, so they can be extracted from the mod jar at runtime
+// (Forge's union filesystem gets in the way of JavaCPP's own extraction)
+def nativesListDir = layout.buildDirectory.dir('generated/natives-list')
+tasks.register('generateNativesList') {
+    inputs.files(configurations.shade)
+    outputs.dir(nativesListDir)
+    doLast {
+        def names = new TreeSet<String>()
+        configurations.shade.files.findAll { it.name.contains(natives_platform) }.each { f ->
+            zipTree(f).visit { d ->
+                if (!d.directory && d.path.startsWith('org/bytedeco/') && d.path.contains("/${natives_platform}/") && d.path.endsWith('.dll'))
+                    names << d.path
+            }
+        }
+        def out = nativesListDir.get().file('META-INF/webdisplays-natives.txt').asFile
+        out.parentFile.mkdirs()
+        out.text = names.join('\n') + '\n'
+    }
+}
+sourceSets.main.resources.srcDir(nativesListDir)
+processResources.dependsOn generateNativesList
+
 // jar meta-info
 jar {
+    dependsOn configurations.shade
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from({ configurations.shade.collect { zipTree(it) } }) {
+        exclude 'META-INF/MANIFEST.MF', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA',
+                '**/module-info.class', 'META-INF/native-image/**', '**/*.exe'
+    }
     manifest {
         attributes([
                 "Specification-Title": "WebDisplays",
@@ -118,4 +159,12 @@ jar {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+// Standalone encoder/decoder benchmark (no Minecraft needed): ./gradlew streamBench
+tasks.register('streamBench', JavaExec) {
+    group = 'webdisplays'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'StreamBench'
+    jvmArgs "-Dorg.bytedeco.javacpp.cachedir=${layout.buildDirectory.dir('javacpp-cache').get().asFile}"
 }
