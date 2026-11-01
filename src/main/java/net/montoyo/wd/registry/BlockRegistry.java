@@ -11,6 +11,7 @@ import net.montoyo.wd.block.KeyboardBlockLeft;
 import net.montoyo.wd.block.KeyboardBlockRight;
 import net.montoyo.wd.block.PeripheralBlock;
 import net.montoyo.wd.block.ScreenBlock;
+import net.montoyo.wd.block.SpeakerBlock;
 import net.montoyo.wd.core.DefaultPeripheral;
 
 public class BlockRegistry {
@@ -28,4 +29,5 @@ public class BlockRegistry {
     public static final RegistryObject<PeripheralBlock> REDSTONE_CONTROL_BLOCK = BlockRegistry.BLOCKS.register("redctrl", () -> new PeripheralBlock(DefaultPeripheral.REDSTONE_CONTROLLER));
     public static final RegistryObject<PeripheralBlock> REMOTE_CONTROLLER_BLOCK = BlockRegistry.BLOCKS.register("rctrl", () -> new PeripheralBlock(DefaultPeripheral.REMOTE_CONTROLLER));
     public static final RegistryObject<PeripheralBlock> SERVER_BLOCK = BlockRegistry.BLOCKS.register("server", () -> new PeripheralBlock(DefaultPeripheral.SERVER));
+    public static final RegistryObject<SpeakerBlock> SPEAKER_BLOCK = BLOCKS.register("speaker", SpeakerBlock::new);
 }

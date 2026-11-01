@@ -147,5 +147,21 @@
   "webdisplays.server.help.url": "复制一个文件网址到你的剪切板",
   "webdisplays.server.help.upload": "打开上传向导",
   "webdisplays.server.help.rm": "删除一个文件",
-  "webdisplays.server.help.reconnect": "重新连接到服务器[调试中]"
+  "webdisplays.server.help.reconnect": "重新连接到服务器[调试中]",
+  "block.webdisplays.speaker": "音箱",
+  "webdisplays.gui.speaker.title": "音箱设置",
+  "webdisplays.gui.speaker.linked": "已连接到屏幕 %s, %s, %s",
+  "webdisplays.gui.speaker.notLinked": "未连接：用连接器先点屏幕，再点这个音箱",
+  "webdisplays.gui.speaker.volume": "音箱音量：%s%%",
+  "webdisplays.gui.speaker.range": "传声距离：%s 格",
+  "webdisplays.gui.speaker.channel": "声道：%s",
+  "webdisplays.gui.speaker.channel.mix": "混合（单声道）",
+  "webdisplays.gui.speaker.channel.left": "左声道",
+  "webdisplays.gui.speaker.channel.right": "右声道",
+  "webdisplays.gui.speaker.mine": "我的设置（只影响自己）",
+  "webdisplays.gui.speaker.myVolume": "我的 WebDisplays 总音量：%s%%",
+  "webdisplays.gui.speaker.pauseMusic": "屏幕出声时暂停游戏音乐：%s",
+  "webdisplays.audio.on": "开",
+  "webdisplays.audio.off": "关",
+  "webdisplays.audio.status": "[WebDisplays] 我的总音量：%s%%，屏幕出声时暂停游戏音乐：%s，没连音箱的屏幕传声距离：%s 格。用 /wdaudio volume|pausemusic|screenrange 修改"
 }

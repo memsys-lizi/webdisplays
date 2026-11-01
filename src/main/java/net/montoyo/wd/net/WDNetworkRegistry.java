@@ -9,7 +9,7 @@ import net.montoyo.wd.net.server_bound.*;
 import java.util.ArrayList;
 
 public class WDNetworkRegistry {
-	public static final String networkingVersion = "2";
+	public static final String networkingVersion = "2-speaker1";
 	public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
 			new ResourceLocation("webdisplays", "packetsystem"),
 			() -> networkingVersion,
@@ -56,6 +56,9 @@ public class WDNetworkRegistry {
 		
 		// minepad
 		entries.add(new NetworkEntry<>(C2SMessageMinepadUrl.class, C2SMessageMinepadUrl::new));
+		
+		// speakers
+		entries.add(new NetworkEntry<>(C2SMessageSpeakerSettings.class, C2SMessageSpeakerSettings::new));
 		
 		for (int i = 0; i < entries.size(); i++) entries.get(i).register(i, INSTANCE);
 	}

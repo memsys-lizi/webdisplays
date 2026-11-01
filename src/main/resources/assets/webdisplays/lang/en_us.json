@@ -155,5 +155,21 @@
   "webdisplays.server.help.reconnect": "Reconnect to miniserv [DEBUG]",
   "webdisplays.server.press_for_more": "<Press DOWN to show more>",
   "webdisplays.key.toggle_mouse": "Toggle Laser Mouse (WebDisplays)",
-  "webdisplays.gui.minepad.close": "Press Shift and Escape to close."
+  "webdisplays.gui.minepad.close": "Press Shift and Escape to close.",
+  "block.webdisplays.speaker": "Speaker",
+  "webdisplays.gui.speaker.title": "Speaker",
+  "webdisplays.gui.speaker.linked": "Linked to the screen at %s, %s, %s",
+  "webdisplays.gui.speaker.notLinked": "Not linked: use a Linker on a screen, then on this speaker",
+  "webdisplays.gui.speaker.volume": "Speaker volume: %s%%",
+  "webdisplays.gui.speaker.range": "Range: %s blocks",
+  "webdisplays.gui.speaker.channel": "Channel: %s",
+  "webdisplays.gui.speaker.channel.mix": "Mixed (mono)",
+  "webdisplays.gui.speaker.channel.left": "Left",
+  "webdisplays.gui.speaker.channel.right": "Right",
+  "webdisplays.gui.speaker.mine": "My settings (only affect me)",
+  "webdisplays.gui.speaker.myVolume": "My WebDisplays volume: %s%%",
+  "webdisplays.gui.speaker.pauseMusic": "Pause game music while a screen plays: %s",
+  "webdisplays.audio.on": "ON",
+  "webdisplays.audio.off": "OFF",
+  "webdisplays.audio.status": "[WebDisplays] My volume: %s%%, pause game music: %s, range of screens without speakers: %s blocks. Change with /wdaudio volume|pausemusic|screenrange"
 }

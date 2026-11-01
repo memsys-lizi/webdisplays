@@ -50,6 +50,7 @@ public class ItemRegistry {
     public static final RegistryObject<Item> REDSTONE_CONTROLLER = ITEMS.register("redctrl", () -> new BlockItem(BlockRegistry.REDSTONE_CONTROL_BLOCK.get(), new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
     public static final RegistryObject<Item> REMOTE_CONTROLLER = ITEMS.register("rctrl", () -> new BlockItem(BlockRegistry.REMOTE_CONTROLLER_BLOCK.get(), new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
     public static final RegistryObject<Item> SERVER = ITEMS.register("server", () -> new BlockItem(BlockRegistry.SERVER_BLOCK.get(), new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
+    public static final RegistryObject<Item> SPEAKER = ITEMS.register("speaker", () -> new BlockItem(BlockRegistry.SPEAKER_BLOCK.get(), new Item.Properties().tab(WDTabs.EXAMPLE_TAB)));
 
     public static RegistryObject<Item> getComputerCraftItem(int index) {
         return COMP_CRAFT_ITEMS[index];

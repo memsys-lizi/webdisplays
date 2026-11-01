@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WNW",
+    "WPW",
+    "WRW"
+  ],
+  "key": {
+    "W": {
+      "tag": "minecraft:planks"
+    },
+    "N": {
+      "item": "minecraft:note_block"
+    },
+    "P": {
+      "item": "webdisplays:craftcomp_peripheral"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "item": "webdisplays:speaker"
+  }
+}

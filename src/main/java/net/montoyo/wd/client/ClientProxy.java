@@ -4,6 +4,8 @@
 
 package net.montoyo.wd.client;
 
+import net.montoyo.wd.client.audio.ScreenAudioManager;
+
 import com.cinemamod.mcef.MCEF;
 import com.cinemamod.mcef.MCEFBrowser;
 import com.mojang.authlib.GameProfile;
@@ -287,6 +289,7 @@ public class ClientProxy extends SharedProxy implements ResourceManagerReloadLis
 		);
 
 		MCEF.getClient().addDisplayHandler(DisplayHandler.INSTANCE);
+		ScreenAudioManager.init();
 		MCEF.getClient().getHandle().addMessageRouter(CefMessageRouter.create(WDRouter.INSTANCE));
 
 		findAdvancementToProgressField();

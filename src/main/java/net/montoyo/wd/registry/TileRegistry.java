@@ -28,6 +28,9 @@ public class TileRegistry {
     public static final RegistryObject<BlockEntityType<?>> SERVER = TILE_TYPES.register("server",
             () -> BlockEntityType.Builder.of(ServerBlockEntity::new, BlockRegistry.SERVER_BLOCK.get()).build(null));
 
+    public static final RegistryObject<BlockEntityType<SpeakerBlockEntity>> SPEAKER = TILE_TYPES.register("speaker",
+            () -> BlockEntityType.Builder.of(SpeakerBlockEntity::new, BlockRegistry.SPEAKER_BLOCK.get()).build(null));
+
     public static void init(IEventBus bus) {
         TILE_TYPES.register(bus);
     }
